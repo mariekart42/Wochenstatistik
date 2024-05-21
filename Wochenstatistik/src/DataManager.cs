@@ -9,6 +9,13 @@ public static class DataManager
     {
         return (char)(num + 64);
     }
+
+    public static double ToPercent(Cell cell)
+    {
+        double value = (double)cell.Value;
+        double round = Math.Round( value * 100, 2, MidpointRounding.AwayFromZero );
+        return round;
+    }
     public static Dictionary<char, Cell> GetDataFromRowAsArray(Worksheet worksheet, int rowIndex)
     {
         Row row = worksheet.Cells.Rows[rowIndex];
