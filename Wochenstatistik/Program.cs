@@ -2,19 +2,15 @@
 using Wochenstatistik;
 using System;
 using System.Globalization;
-using Microsoft.Extensions.Configuration;
 using MimeKit;
 using MailKit.Net.Smtp;
 
-var config = new ConfigurationBuilder()
-    .AddUserSecrets<Program>()
-    .Build();
-
-string path = config["DOCUMENT_PATH"];
+string path = Environment.GetEnvironmentVariable("DOCUMENT_PATH");
 string? user = "PAP";
 
 try
 {
+    Console.WriteLine($"PATH {path}");
     Worksheet worksheet = ExcelHandler.GetWorksheet(path);
     int rowIndex = DataManager.GetRowIndex(worksheet, user);
     Dictionary<char, Cell> rowData = DataManager.GetDataFromRowAsArray(worksheet, rowIndex);
@@ -27,20 +23,20 @@ try
     }
 
     var message = new MimeMessage ();
-    string emailHost = config["EMAIL_HOST"];
-    string emailPassword = config["EMAIL_PASSWORD"];
+    string emailHost = Environment.GetEnvironmentVariable("EMAIL_HOST");
+    string emailPassword = Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
 
     message.From.Add(new MailboxAddress("test name", emailHost));
     message.To.Add(new MailboxAddress("", "marie.a.mensing@gmail.com"));
-    message.Subject = "Test";
+    message.Subject = "lol";
 
     message.Body = new TextPart ("plain") {
         Text = @"This is a test."
     };
 
-    string host = config["EMAIL_SERVER_HOST"];
-    string port = config["EMAIL_SERVER_PORT"];
-    string ssl = config["EMAIL_SERVER_SSL"];
+    string host = Environment.GetEnvironmentVariable("EMAIL_SERVER_HOST");
+    string port = Environment.GetEnvironmentVariable("EMAIL_SERVER_PORT");
+    string ssl = Environment.GetEnvironmentVariable("EMAIL_SERVER_SSL");
 
     using (var client = new SmtpClient ()) {
         client.Connect (host, int.Parse(port), bool.Parse(ssl));
