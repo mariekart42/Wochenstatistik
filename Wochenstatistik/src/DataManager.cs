@@ -53,7 +53,23 @@ public static class DataManager
         return dictionary;
     }
 
-    private static string GetHtmlContent()
+    private static string CutAfterOneNumber(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+        int commaIndex = input.IndexOf('.');
+        if (commaIndex == -1 || commaIndex == input.Length - 1)
+            return input;
+        int length = Math.Min(commaIndex + 2, input.Length);
+
+        char numberAfterComma = input[commaIndex + 1];
+        if (numberAfterComma == '0')
+            return input.Substring(0, length-2);
+        else
+            return input.Substring(0, length);
+    }
+
+    private static string GetHtmlContent(Dictionary<char, Cell> rowData)
     {
         string result = File.ReadAllText("html/styling.html");
         result += "<title>Excel Table</title></head><body><div class=\"table-container\"><table><thead>\n<tr><th colspan=\"8\" class=\"main-header\">";
@@ -63,69 +79,152 @@ public static class DataManager
         string MonthSpan = "Januar - Mai";
         result += MonthSpan;
         result += File.ReadAllText("html/headingTitles.html");
-        result += "<td class=\"highlight-yellow\" style=\"\">";
-        string CurrentMonthBeaTEUR = "3,2";
+
+        string CurrentMonthBeaTEUR = CutAfterOneNumber(rowData['C'].Value.ToString());
+        if (CurrentMonthBeaTEUR.StartsWith("-"))
+            result +="<td class=\"highlight-yellow\" style=\"color: red;\">";
+        else
+            result += "<td class=\"highlight-yellow\">";
         result += CurrentMonthBeaTEUR;
-        result += "</td><td class=\"highlight-yellow red-text\" style=\"\">";
-        string CurrentMonthBeaVorjahrMonat = "-95,2%";
+
+        string CurrentMonthBeaVorjahrMonat = CutAfterOneNumber(rowData['D'].Value.ToString());
+        if (CurrentMonthBeaVorjahrMonat.StartsWith("-"))
+            result +="</td><td class=\"highlight-yellow\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-yellow\">";
         result += CurrentMonthBeaVorjahrMonat;
-        result += "</td><td class=\"highlight-green\" style=\"\">";
-        string CurrentMonthGFTEUR = "0,5";
+
+        string CurrentMonthGFTEUR = CutAfterOneNumber(rowData['E'].Value.ToString());
+        if (CurrentMonthGFTEUR.StartsWith("-"))
+            result += "</td><td class=\"highlight-green\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-green\">";
         result += CurrentMonthGFTEUR;
-        result += "</td><td class=\"highlight-green red-text\" style=\"\">";
-        string CurrentMonthGFVorjahrMonat = "-60,2%";
+
+
+        string CurrentMonthGFVorjahrMonat = CutAfterOneNumber(rowData['F'].Value.ToString());
+        if (CurrentMonthGFVorjahrMonat.StartsWith("-"))
+            result += "</td><td class=\"highlight-green\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-green\">";
         result += CurrentMonthGFVorjahrMonat;
-        result += "</td><td class=\"highlight-blue\" style=\"\">";
-        string CurrentMonthTaxTEUR = "0,0";
+
+        string CurrentMonthTaxTEUR = CutAfterOneNumber(rowData['G'].Value.ToString());
+        if (CurrentMonthTaxTEUR.StartsWith("-"))
+            result += "</td><td class=\"highlight-blue\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-blue\">";
         result += CurrentMonthTaxTEUR;
-        result += "</td><td class=\"highlight-blue red-text\" style=\"color: red;\">";
-        string CurrentMonthTaxVorjahrMonat = "-100%";
+
+        string CurrentMonthTaxVorjahrMonat = CutAfterOneNumber(rowData['H'].Value.ToString());
+        if (CurrentMonthTaxTEUR.StartsWith("-"))
+            result += "</td><td class=\"highlight-blue\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-blue\">";
         result += CurrentMonthTaxVorjahrMonat;
-        result += "</td><td class=\"highlight-purple\" style=\"\">";
-        string CurrentMonthGesamtTEUR = "3,7";
+
+        string CurrentMonthGesamtTEUR = CutAfterOneNumber(rowData['I'].Value.ToString());
+        if (CurrentMonthGesamtTEUR.StartsWith("-"))
+            result += "</td><td class=\"highlight-purple\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-purple\">";
         result += CurrentMonthGesamtTEUR;
-        result += "</td><td class=\"highlight-purple red-text\" style=\"\">";
-        string CurrentMonthGesamtVorjahrMonat = "-94,6%";
+
+        string CurrentMonthGesamtVorjahrMonat = CutAfterOneNumber(rowData['J'].Value.ToString());
+        if (CurrentMonthGesamtVorjahrMonat.StartsWith("-"))
+            result += "</td><td class=\"highlight-purple\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-purple\">";
         result += CurrentMonthGesamtVorjahrMonat;
-        result += "</td><td class=\"highlight-yellow\" style=\"\">";
-        string MonthSpanBeaTEUR = "197,5";
+
+        string MonthSpanBeaTEUR = CutAfterOneNumber(rowData['L'].Value.ToString());
+        if (MonthSpanBeaTEUR.StartsWith("-"))
+            result += "</td><td class=\"highlight-yellow\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-yellow\">";
         result += MonthSpanBeaTEUR;
-        result += "</td><td class=\"highlight-yellow red-text\" style=\"\">";
-        string MonthSpanBeaVorjahrMonat = "-45,5%";
+
+        string MonthSpanBeaVorjahrMonat = CutAfterOneNumber(rowData['M'].Value.ToString());
+        if (MonthSpanBeaVorjahrMonat.StartsWith("-"))
+            result += "</td><td class=\"highlight-yellow\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-yellow\">";
         result += MonthSpanBeaVorjahrMonat;
-        result += "</td><td class=\"highlight-green\" style=\"\">";
-        string MonthSpanGFTEUR = "26,9";
+
+
+        string MonthSpanGFTEUR = CutAfterOneNumber(rowData['N'].Value.ToString());
+        if (MonthSpanGFTEUR.StartsWith("-"))
+            result += "</td><td class=\"highlight-green\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-green\">";
         result += MonthSpanGFTEUR;
-        result += "</td><td class=\"highlight-green red-text\" style=\"\">";
-        string MonthSpanGFVorjahrMonat = "-36,3%";
+
+
+        string MonthSpanGFVorjahrMonat = CutAfterOneNumber(rowData['O'].Value.ToString());
+        if (MonthSpanGFVorjahrMonat.StartsWith("-"))
+            result += "</td><td class=\"highlight-green\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-green\">";
         result += MonthSpanGFVorjahrMonat;
-        result += "</td><td class=\"highlight-blue\" style=\"\">";
-        string MonthSpanTaxTEUR = "1,3";
+
+
+        string MonthSpanTaxTEUR = CutAfterOneNumber(rowData['P'].Value.ToString());
+        if (MonthSpanTaxTEUR.StartsWith("-"))
+            result += "</td><td class=\"highlight-blue\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-blue\">";
         result += MonthSpanTaxTEUR;
-        result += "</td><td class=\"highlight-blue red-text\" style=\"\">";
-        string MonthSpanTaxVorjahrMonat = "27,1%";
+
+
+        string MonthSpanTaxVorjahrMonat = CutAfterOneNumber(rowData['Q'].Value.ToString());
+        if (MonthSpanTaxVorjahrMonat.StartsWith("-"))
+            result += "</td><td class=\"highlight-blue\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-blue\">";
         result += MonthSpanTaxVorjahrMonat;
-        result += "</td><td class=\"highlight-purple\" style=\"\">";
-        string MonthSpanGesamtTEUR = "225,7";
+
+
+        string MonthSpanGesamtTEUR = CutAfterOneNumber(rowData['R'].Value.ToString());
+        if (MonthSpanGesamtTEUR.StartsWith("-"))
+            result += "</td><td class=\"highlight-purple\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-purple\">";
         result += MonthSpanGesamtTEUR;
-        result += "</td><td class=\"highlight-purple red-text\" style=\"\">";
-        string MonthSpanGesamtVorjahrMonat = "-44,3%";
+
+        string MonthSpanGesamtVorjahrMonat = CutAfterOneNumber(rowData['S'].Value.ToString());
+        if (MonthSpanGesamtVorjahrMonat.StartsWith("-"))
+            result += "</td><td class=\"highlight-purple\" style=\"color: red;\">";
+        else
+            result += "</td><td class=\"highlight-purple\">";
         result += MonthSpanGesamtVorjahrMonat;
-        result += "</td><td style=\"\">";
-        string offeneLSEigen = "22,6";
+
+
+        string offeneLSEigen = CutAfterOneNumber(rowData['U'].Value.ToString());
+        if (offeneLSEigen.StartsWith("-"))
+            result += "</td><td style=\"color: red;\">";
+        else
+            result += "</td><td>";
         result += offeneLSEigen;
-        result += "</td><td style=\"\">";
-        string offeneLSFremd = "4,8";
+
+        string offeneLSFremd = CutAfterOneNumber(rowData['V'].Value.ToString());
+        if (offeneLSFremd.StartsWith("-"))
+            result += "</td><td style=\"color: red;\">";
+        else
+            result += "</td><td>";
         result += offeneLSFremd;
-        result += "</td><td style=\"\">";
-        string offeneLSGesamt = "27,4";
+
+        string offeneLSGesamt = CutAfterOneNumber(rowData['W'].Value.ToString());
+        if (offeneLSGesamt.StartsWith("-"))
+            result += "</td><td style=\"color: red;\">";
+        else
+            result += "</td><td>";
         result += offeneLSGesamt;
-        result += "</td></tr>";
-        result += "</tbody></table></div></body></html>";
+
+        result += "</td></tr></tbody></table></div></body></html>";
         return result;
     }
 
-    public static void sendMail()
+    public static void sendMail(Dictionary<char, Cell> rowData)
     {
         var message = new MimeMessage ();
         string emailHost = Environment.GetEnvironmentVariable("EMAIL_HOST");
@@ -137,7 +236,7 @@ public static class DataManager
 
         message.Body = new TextPart("html")
         {
-            Text = GetHtmlContent()
+            Text = GetHtmlContent(rowData)
         };
 
         string host = Environment.GetEnvironmentVariable("EMAIL_SERVER_HOST");
