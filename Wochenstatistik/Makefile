@@ -15,10 +15,7 @@ run:
 
 re: clean all
 
-stop:
-	docker stop
-
-clean: stop
+clean:
 	docker image rm -f lef_image 2>/dev/null || true
 
 fclean: clean
