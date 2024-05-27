@@ -4,25 +4,22 @@ using System;
 using System.Globalization;
 
 
-string path = Environment.GetEnvironmentVariable("DOCUMENT_PATH");
+string excel_file_path = Environment.GetEnvironmentVariable("EXCEL_FILE_PATH");
+string user_file_path = Environment.GetEnvironmentVariable("USER_FILE_PATH");
 string? user = "CMC";
 
 try
 {
-    Console.WriteLine($"PATH {path}");
-    Worksheet worksheet = ExcelHandler.GetWorksheet(path);
-    int rowIndex = DataManager.GetRowIndex(worksheet, user);
-    Dictionary<char, Cell> rowData = DataManager.GetDataFromRowAsArray(worksheet, rowIndex);
+    Console.WriteLine($"PATH {excel_file_path}");
+    if (string.IsNullOrEmpty(excel_file_path))
+        throw new Exception("Please provide the Daten_Wochenstatistik.xlsx file!");
+    if (string.IsNullOrEmpty(user_file_path))
+        throw new Exception("Please provide the User_Wochenstatistik.txt file!");
 
-    for (int i = 2; i <= worksheet.Cells.MaxDataColumn; i++)
-    {
-        if (i == 10 || i == 19)
-            continue;
-        Console.WriteLine($"[{DataManager.ToASCIILetter(i+1)}]: {rowData[DataManager.ToASCIILetter(i+1)].Value}");
-    }
+    Worksheet worksheet = ExcelHandler.GetWorksheet(excel_file_path);
 
-    DataManager.sendMail(rowData);
-
+    DataManager.InitData(worksheet, user);
+    DataManager.sendMail();
 }
 catch (Exception e)
 {
