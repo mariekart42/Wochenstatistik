@@ -32,6 +32,17 @@ public static class DataManager
     private static string? _offeneLeistungskostenFremd;
     private static string? _offeneLeistungskostenGesamt;
 
+    private static string GetFormattedValue(Cell cell, bool isPercent)
+    {
+        string value = cell.Value.ToString();
+
+        if (value == "XXX")
+            return "/";
+        if (isPercent)
+            return CutAfterOneNumber(ToPercent(value)) + '%';
+        return CutAfterOneNumber(value);
+    }
+
     public static void InitData(Worksheet worksheet, KeyValuePair<string, string> user)
     {
         _emailTo = user.Value;
@@ -39,29 +50,27 @@ public static class DataManager
         int rowIndex = GetRowIndex(worksheet, user.Key);
         Dictionary<char, Cell> rowData = GetDataFromRowAsArray(worksheet, rowIndex);
 
-        // 0 / C -> Mai
-        // 0 / L -> Januar - Mai
-        _currentMonth = "Mai";
-        _monthSpan = "Januar - Mai";
-        _currentMonthBeaTEUR = CutAfterOneNumber(rowData['C'].Value.ToString());
-        _currentMonthBeaVorjahrMonat = CutAfterOneNumber(ToPercent(rowData['D'].Value.ToString())) + '%';
-        _currentMonthGFTEUR = CutAfterOneNumber(rowData['E'].Value.ToString());
-        _currentMonthGFVorjahrMonat = CutAfterOneNumber(ToPercent(rowData['F'].Value.ToString())) + '%';
-        _currentMonthTaxTEUR = CutAfterOneNumber(rowData['G'].Value.ToString());
-        _currentMonthTaxVorjahrMonat = CutAfterOneNumber(ToPercent(rowData['H'].Value.ToString())) + '%';
-        _currentMonthGesamtTEUR = CutAfterOneNumber(rowData['I'].Value.ToString());
-        _currentMonthGesamtVorjahrMonat = CutAfterOneNumber(ToPercent(rowData['J'].Value.ToString())) + '%';
-        _monthSpanBeaTEUR = CutAfterOneNumber(rowData['L'].Value.ToString());
-        _monthSpanBeaVorjahrMonat = CutAfterOneNumber(ToPercent(rowData['M'].Value.ToString())) + '%';
-        _monthSpanGFTEUR = CutAfterOneNumber(rowData['N'].Value.ToString());
-        _monthSpanGFVorjahrMonat = CutAfterOneNumber(ToPercent(rowData['O'].Value.ToString())) + '%';
-        _monthSpanTaxTEUR = CutAfterOneNumber(rowData['P'].Value.ToString());
-        _monthSpanTaxVorjahrMonat = CutAfterOneNumber(ToPercent(rowData['Q'].Value.ToString())) + '%';
-        _monthSpanGesamtTEUR = CutAfterOneNumber(rowData['R'].Value.ToString());
-        _monthSpanGesamtVorjahrMonat = CutAfterOneNumber(ToPercent(rowData['S'].Value.ToString())) + '%';
-        _offeneLeistungskostenEigen = CutAfterOneNumber(rowData['U'].Value.ToString());
-        _offeneLeistungskostenFremd = CutAfterOneNumber(rowData['V'].Value.ToString());
-        _offeneLeistungskostenGesamt = CutAfterOneNumber(rowData['W'].Value.ToString());
+        _currentMonth = worksheet.Cells[0, 2].Value.ToString();
+        _monthSpan = worksheet.Cells[0, 11].Value.ToString();
+        _currentMonthBeaTEUR = GetFormattedValue(rowData['C'], false);
+        _currentMonthBeaVorjahrMonat = GetFormattedValue(rowData['D'], true);
+        _currentMonthGFTEUR = GetFormattedValue(rowData['E'], false);
+        _currentMonthGFVorjahrMonat = GetFormattedValue(rowData['F'], true);
+        _currentMonthTaxTEUR = GetFormattedValue(rowData['G'], false);
+        _currentMonthTaxVorjahrMonat = GetFormattedValue(rowData['H'], true);
+        _currentMonthGesamtTEUR = GetFormattedValue(rowData['I'], false);
+        _currentMonthGesamtVorjahrMonat = GetFormattedValue(rowData['J'], true);
+        _monthSpanBeaTEUR = GetFormattedValue(rowData['L'], false);
+        _monthSpanBeaVorjahrMonat = GetFormattedValue(rowData['M'], true);
+        _monthSpanGFTEUR = GetFormattedValue(rowData['N'], false);
+        _monthSpanGFVorjahrMonat = GetFormattedValue(rowData['O'], true);
+        _monthSpanTaxTEUR = GetFormattedValue(rowData['P'], false);
+        _monthSpanTaxVorjahrMonat = GetFormattedValue(rowData['Q'], true);
+        _monthSpanGesamtTEUR = GetFormattedValue(rowData['R'], false);
+        _monthSpanGesamtVorjahrMonat = GetFormattedValue(rowData['S'], true);
+        _offeneLeistungskostenEigen = GetFormattedValue(rowData['U'], false);
+        _offeneLeistungskostenFremd = GetFormattedValue(rowData['V'], false);
+        _offeneLeistungskostenGesamt = GetFormattedValue(rowData['W'], false);
     }
 
     private static char ToAsciiLetter(int num)
@@ -73,23 +82,17 @@ public static class DataManager
     {
         if (string.IsNullOrEmpty(user))
             throw new Exception("The username can't be empty! Exit.");
-        Console.WriteLine($"max col: {worksheet.Cells.MaxDataRow}");
+
         for (int i = 0; i <= worksheet.Cells.MaxDataRow; i++)
-        {
-            Console.WriteLine($"cell: {(string)worksheet.Cells[i, 0].Value}");
             if ((string)worksheet.Cells[i, 0].Value == user)
                 return i;
-        }
         throw new Exception($"The user [{user}] does not exist. Exit");
     }
 
     private static string ToPercent(string number)
     {
-        if (string.IsNullOrEmpty(number))
-        {
-            Console.WriteLine("Input in ToPercent is empty or null. Continue.");
+        if (string.IsNullOrEmpty(number) || number == "XXX")
             return number;
-        }
 
         bool isNegative = number.StartsWith("-");
         if (isNegative)
@@ -122,7 +125,8 @@ public static class DataManager
 
         for (int i = 2; i <= worksheet.Cells.MaxDataColumn; i++)
         {
-            if (i == 10 || i == 19)
+            object cellValue = worksheet.Cells[rowIndex, i].Value;
+            if (cellValue == null|| string.IsNullOrWhiteSpace(cellValue.ToString()))
                 continue;
             char letter = ToAsciiLetter(i + 1);
             dictionary[ToAsciiLetter(i+1)] = row[i];
@@ -191,12 +195,11 @@ public static class DataManager
         string emailPassword = Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
 
         message.From.Add(new MailboxAddress("test name", emailHost));
-        // Console.WriteLine($"EMAIL TO: {_emailTo}");
         message.To.Add(new MailboxAddress(_firm, _emailTo));
         message.Subject = "Wochenstatistik für " + _firm;
 
         message.Body = new TextPart("html")
-        { Text = "Hallo " + _firm + ",\nHier Ihre Wochenstatistik:\n"+ GetHtmlContent() };
+        { Text = "Hallo " + _firm + ",\nHier ist Ihre Wochenstatistik:\n"+ GetHtmlContent() };
 
         string host = Environment.GetEnvironmentVariable("EMAIL_SERVER_HOST");
         string port = Environment.GetEnvironmentVariable("EMAIL_SERVER_PORT");
@@ -248,20 +251,16 @@ public static class DataManager
                     for (int i = 0; i <= worksheet.Cells.MaxDataRow; i++)
                     {
                         var cellValue = worksheet.Cells[i, 0].Value?.ToString().Trim().ToUpper();
-
-                        // Console.WriteLine($"cell: {cellValue}");
                         if (cellValue == firm)
                         {
-                            Console.WriteLine($"FOUND FIRM: {cellValue}");
                             found = true;
                             break;
                         }
                     }
-                    if (found == false)
-                        throw new Exception($"Wrong syntax in User_Wochenstatistik file. Firm is invalid. Found: {firm}. Exit.");
-                    else
+                    if (found)
                         userDic[firm] = email;
-                    Console.WriteLine($"{email}|{firm}");
+                    else
+                        throw new Exception($"Wrong syntax in User_Wochenstatistik file. Firm is invalid. Found: {firm}. Exit.");
                 }
                 else
                     throw new Exception($"Wrong syntax in User_Wochenstatistik file. Expected: <email>|<firm>. Found: {line}. Exit.");

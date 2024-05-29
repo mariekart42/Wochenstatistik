@@ -1,16 +1,11 @@
 ﻿using Aspose.Cells;
 using Wochenstatistik;
-using System;
-using System.Globalization;
-
 
 string excel_file_path = Environment.GetEnvironmentVariable("EXCEL_FILE_PATH");
 string user_file_path = Environment.GetEnvironmentVariable("USER_FILE_PATH");
-// string? user = "CMC";
 
 try
 {
-    Console.WriteLine($"PATH {excel_file_path}");
     if (string.IsNullOrEmpty(excel_file_path) || File.Exists(excel_file_path) == false)
         throw new Exception("Please provide the Daten_Wochenstatistik.xlsx file!");
     if (string.IsNullOrEmpty(user_file_path) || File.Exists(user_file_path) == false)
@@ -22,7 +17,7 @@ try
 
     foreach (var user in userDic)
     {
-        Console.WriteLine($"HERE: {user.Key}, {user.Value}");
+        Console.WriteLine($"SEND EMAIL TO: {user.Key}, {user.Value}");
         DataManager.InitData(worksheet, user);
         DataManager.sendMail();
     }
