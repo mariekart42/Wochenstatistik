@@ -1,10 +1,15 @@
+using System.Net.Mail;
 using Aspose.Cells;
 using MimeKit;
-using MailKit.Net.Smtp;
+using SmtpClient = MailKit.Net.Smtp.SmtpClient;
+
 namespace Wochenstatistik;
 
 public static class DataManager
 {
+    private static string _emailTo;
+    private static string _firm;
+
     private static string? _currentMonth;
     private static string? _monthSpan;
     private static string? _currentMonthBeaTEUR;
@@ -27,16 +32,12 @@ public static class DataManager
     private static string? _offeneLeistungskostenFremd;
     private static string? _offeneLeistungskostenGesamt;
 
-    public static void InitData(Worksheet worksheet, string user)
+    public static void InitData(Worksheet worksheet, KeyValuePair<string, string> user)
     {
-        int rowIndex = GetRowIndex(worksheet, user);
+        _emailTo = user.Value;
+        _firm = user.Key;
+        int rowIndex = GetRowIndex(worksheet, user.Key);
         Dictionary<char, Cell> rowData = GetDataFromRowAsArray(worksheet, rowIndex);
-        // for (int i = 2; i <= worksheet.Cells.MaxDataColumn; i++)
-        // {
-        //     if (i == 10 || i == 19)
-        //         continue;
-        //     Console.WriteLine($"[{DataManager.ToASCIILetter(i+1)}]: {rowData[DataManager.ToASCIILetter(i+1)].Value}");
-        // }
 
         // 0 / C -> Mai
         // 0 / L -> Januar - Mai
@@ -63,7 +64,7 @@ public static class DataManager
         _offeneLeistungskostenGesamt = CutAfterOneNumber(rowData['W'].Value.ToString());
     }
 
-    private static char ToASCIILetter(int num)
+    private static char ToAsciiLetter(int num)
     {
         return (char)(num + 64);
     }
@@ -82,36 +83,36 @@ public static class DataManager
         throw new Exception($"The user [{user}] does not exist. Exit");
     }
 
-    private static string ToPercent(string decimalNumber)
+    private static string ToPercent(string number)
     {
-        if (string.IsNullOrEmpty(decimalNumber))
+        if (string.IsNullOrEmpty(number))
         {
             Console.WriteLine("Input in ToPercent is empty or null. Continue.");
-            return decimalNumber;
+            return number;
         }
 
-        bool isNegative = decimalNumber.StartsWith("-");
+        bool isNegative = number.StartsWith("-");
         if (isNegative)
-            decimalNumber = decimalNumber.Substring(1);
-        int commaIndex = decimalNumber.IndexOf('.');
+            number = number.Substring(1);
+        int commaIndex = number.IndexOf('.');
         if (commaIndex == -1)
-            decimalNumber += "00";
+            number += "00";
         else
         {
-            string integerPart = decimalNumber.Substring(0, commaIndex);
-            string fractionalPart = decimalNumber.Substring(commaIndex + 1);
+            string integerPart = number.Substring(0, commaIndex);
+            string fractionalPart = number.Substring(commaIndex + 1);
 
             while (fractionalPart.Length < 2)
                 fractionalPart += "0";
-            decimalNumber = integerPart + fractionalPart.Substring(0, 2) + "." + fractionalPart.Substring(2);
+            number = integerPart + fractionalPart.Substring(0, 2) + "." + fractionalPart.Substring(2);
         }
 
-        decimalNumber = decimalNumber.TrimStart('0');
-        if (string.IsNullOrEmpty(decimalNumber) || decimalNumber.StartsWith("."))
-            decimalNumber = "0" + decimalNumber;
+        number = number.TrimStart('0');
+        if (string.IsNullOrEmpty(number) || number.StartsWith("."))
+            number = "0" + number;
         if (isNegative)
-            decimalNumber = "-" + decimalNumber;
-        return decimalNumber;
+            number = "-" + number;
+        return number;
     }
 
     private static Dictionary<char, Cell> GetDataFromRowAsArray(Worksheet worksheet, int rowIndex)
@@ -123,11 +124,11 @@ public static class DataManager
         {
             if (i == 10 || i == 19)
                 continue;
-            char letter = ToASCIILetter(i + 1);
-            dictionary[ToASCIILetter(i+1)] = row[i];
+            char letter = ToAsciiLetter(i + 1);
+            dictionary[ToAsciiLetter(i+1)] = row[i];
             if (letter == 'D' || letter == 'F' || letter == 'H' || letter == 'J' || letter == 'M' || letter == 'O' ||
                 letter == 'Q' || letter == 'S')
-                dictionary[ToASCIILetter(i+1)].Value = row[i].Value;
+                dictionary[ToAsciiLetter(i+1)].Value = row[i].Value;
         }
         return dictionary;
     }
@@ -156,7 +157,7 @@ public static class DataManager
     private static string GetHtmlContent()
     {
         string result = File.ReadAllText("html/styling.html");
-        result += "<title>Excel Table</title></head><body><div class=\"table-container\"><table><thead>\n<tr><th colspan=\"8\" class=\"main-header\">";
+        result += "<title>Hallo " + _firm + "!</title></head><body><div class=\"table-container\"><table><thead>\n<tr><th colspan=\"8\" class=\"main-header\">";
         result += _currentMonth + "</th><th colspan=\"8\" class=\"main-header\">";
         result += _monthSpan;
         result += File.ReadAllText("html/headingTitles.html");
@@ -190,11 +191,12 @@ public static class DataManager
         string emailPassword = Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
 
         message.From.Add(new MailboxAddress("test name", emailHost));
-        message.To.Add(new MailboxAddress("", "mmensing@eisenfuhr.com"));
-        message.Subject = "lol";
+        // Console.WriteLine($"EMAIL TO: {_emailTo}");
+        message.To.Add(new MailboxAddress(_firm, _emailTo));
+        message.Subject = "Wochenstatistik für " + _firm;
 
         message.Body = new TextPart("html")
-        { Text = GetHtmlContent() };
+        { Text = "Hallo " + _firm + ",\nHier Ihre Wochenstatistik:\n"+ GetHtmlContent() };
 
         string host = Environment.GetEnvironmentVariable("EMAIL_SERVER_HOST");
         string port = Environment.GetEnvironmentVariable("EMAIL_SERVER_PORT");
@@ -206,5 +208,65 @@ public static class DataManager
             client.Send (message);
             client.Disconnect (true);
         }
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return false;
+        try
+        {
+            var addr = new MailAddress(email);
+            return addr.Address == email;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+    }
+
+    public static Dictionary<string, string> GetUserDic(string user_file_path, Worksheet worksheet)
+    {
+        Dictionary<string, string> userDic = new Dictionary<string, string>();
+        using (StreamReader file = new StreamReader(user_file_path))
+        {
+            string line;
+            while ((line = file.ReadLine()) != null)
+            {
+                if (line.Length == 0 || line.All(c => c == ' ' || c == '\t'))
+                    continue;
+
+                string[] fields = line.Split('|');
+                if (fields.Length == 2)
+                {
+                    string email = fields[0].Trim();
+                    if (!IsValidEmail(email))
+                        throw new Exception($"Wrong syntax in User_Wochenstatistik file. E-Mail address has wrong syntax. Found E-Mail: {email}. Exit.");
+                    string firm = fields[1].Trim().ToUpper();
+
+                    bool found = false;
+                    for (int i = 0; i <= worksheet.Cells.MaxDataRow; i++)
+                    {
+                        var cellValue = worksheet.Cells[i, 0].Value?.ToString().Trim().ToUpper();
+
+                        // Console.WriteLine($"cell: {cellValue}");
+                        if (cellValue == firm)
+                        {
+                            Console.WriteLine($"FOUND FIRM: {cellValue}");
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found == false)
+                        throw new Exception($"Wrong syntax in User_Wochenstatistik file. Firm is invalid. Found: {firm}. Exit.");
+                    else
+                        userDic[firm] = email;
+                    Console.WriteLine($"{email}|{firm}");
+                }
+                else
+                    throw new Exception($"Wrong syntax in User_Wochenstatistik file. Expected: <email>|<firm>. Found: {line}. Exit.");
+            }
+        }
+        return userDic;
     }
 }
