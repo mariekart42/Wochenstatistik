@@ -9,7 +9,6 @@ public static class DataManager
 {
     private static string _emailTo;
     private static string _firm;
-
     private static string? _currentMonth;
     private static string? _monthSpan;
     private static string? _currentMonthBeaTEUR;
@@ -111,7 +110,7 @@ public static class DataManager
         }
 
         number = number.TrimStart('0');
-        if (string.IsNullOrEmpty(number) || number.StartsWith("."))
+        if (string.IsNullOrEmpty(number) || number.StartsWith('.'))
             number = "0" + number;
         if (isNegative)
             number = "-" + number;
@@ -205,12 +204,11 @@ public static class DataManager
         string port = Environment.GetEnvironmentVariable("EMAIL_SERVER_PORT");
         string ssl = Environment.GetEnvironmentVariable("EMAIL_SERVER_SSL");
 
-        using (var client = new SmtpClient ()) {
-            client.Connect (host, int.Parse(port), bool.Parse(ssl));
-            client.Authenticate(emailHost, emailPassword);
-            client.Send (message);
-            client.Disconnect (true);
-        }
+        using var client = new SmtpClient ();
+        client.Connect (host, int.Parse(port), bool.Parse(ssl));
+        client.Authenticate(emailHost, emailPassword);
+        client.Send (message);
+        client.Disconnect (true);
     }
 
     private static bool IsValidEmail(string email)
@@ -231,40 +229,37 @@ public static class DataManager
     public static Dictionary<string, string> GetUserDic(string user_file_path, Worksheet worksheet)
     {
         Dictionary<string, string> userDic = new Dictionary<string, string>();
-        using (StreamReader file = new StreamReader(user_file_path))
+        using StreamReader file = new StreamReader(user_file_path);
+        string line;
+        while ((line = file.ReadLine()) != null)
         {
-            string line;
-            while ((line = file.ReadLine()) != null)
+            if (line.Length == 0 || line.All(c => c == ' ' || c == '\t') || line.StartsWith('#'))
+                continue;
+
+            string[] fields = line.Split('|');
+            if (fields.Length == 2)
             {
-                if (line.Length == 0 || line.All(c => c == ' ' || c == '\t'))
-                    continue;
-
-                string[] fields = line.Split('|');
-                if (fields.Length == 2)
+                string email = fields[0].Trim();
+                if (!IsValidEmail(email))
+                    throw new Exception($"Wrong syntax in User_Wochenstatistik file. E-Mail address has wrong syntax. Found E-Mail: {email}. Exit.");
+                string firm = fields[1].Trim().ToUpper();
+                bool found = false;
+                for (int i = 0; i <= worksheet.Cells.MaxDataRow; i++)
                 {
-                    string email = fields[0].Trim();
-                    if (!IsValidEmail(email))
-                        throw new Exception($"Wrong syntax in User_Wochenstatistik file. E-Mail address has wrong syntax. Found E-Mail: {email}. Exit.");
-                    string firm = fields[1].Trim().ToUpper();
-
-                    bool found = false;
-                    for (int i = 0; i <= worksheet.Cells.MaxDataRow; i++)
+                    var cellValue = worksheet.Cells[i, 0].Value?.ToString().Trim().ToUpper();
+                    if (cellValue == firm)
                     {
-                        var cellValue = worksheet.Cells[i, 0].Value?.ToString().Trim().ToUpper();
-                        if (cellValue == firm)
-                        {
-                            found = true;
-                            break;
-                        }
+                        found = true;
+                        break;
                     }
-                    if (found)
-                        userDic[firm] = email;
-                    else
-                        throw new Exception($"Wrong syntax in User_Wochenstatistik file. Firm is invalid. Found: {firm}. Exit.");
                 }
+                if (found)
+                    userDic[firm] = email;
                 else
-                    throw new Exception($"Wrong syntax in User_Wochenstatistik file. Expected: <email>|<firm>. Found: {line}. Exit.");
+                    throw new Exception($"Wrong syntax in User_Wochenstatistik file. Firm is invalid. Found: {firm}. Exit.");
             }
+            else
+                throw new Exception($"Wrong syntax in User_Wochenstatistik file. Expected: <email>|<firm>. Found: {line}. Exit.");
         }
         return userDic;
     }
