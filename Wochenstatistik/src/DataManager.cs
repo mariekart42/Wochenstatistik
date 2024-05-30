@@ -193,7 +193,7 @@ public static class DataManager
         string emailHost = Environment.GetEnvironmentVariable("EMAIL_HOST");
         string emailPassword = Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
 
-        message.From.Add(new MailboxAddress("test name", emailHost));
+        message.From.Add(new MailboxAddress("Wochenstatistik", emailHost));
         message.To.Add(new MailboxAddress(_firm, _emailTo));
         message.Subject = "Wochenstatistik für " + _firm;
 
