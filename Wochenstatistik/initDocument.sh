@@ -1,7 +1,7 @@
 #!/bin/bash
 
-excel_file="/Users/mariemensing/data/Daten_Wochenstatistik.xlsx"
-user_file="/Users/mariemensing/data/User_Wochenstatistik.txt"
+excel_file="/Users/mariemensing/data/Daten Wochenstatistik.xlsx"
+user_file="/Users/mariemensing/data/Nutzer Liste.txt"
 document_folder="/Users/mariemensing/RiderProjects/Wochenstatistik/Wochenstatistik/document"
 
 if [ ! -d "$document_folder" ]; then

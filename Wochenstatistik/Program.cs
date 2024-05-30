@@ -7,9 +7,9 @@ try
     string user_file_path = Environment.GetEnvironmentVariable("USER_FILE_PATH");
 
     if (string.IsNullOrEmpty(excel_file_path) || File.Exists(excel_file_path) == false)
-        throw new Exception("Please provide the Daten_Wochenstatistik.xlsx file!");
+        throw new Exception("Please provide the Daten Wochenstatistik.xlsx file!");
     if (string.IsNullOrEmpty(user_file_path) || File.Exists(user_file_path) == false)
-        throw new Exception("Please provide the User_Wochenstatistik.txt file!");
+        throw new Exception("Please provide the Nutzer Liste.txt file!");
 
     Worksheet worksheet = ExcelHandler.GetWorksheet(excel_file_path);
 
