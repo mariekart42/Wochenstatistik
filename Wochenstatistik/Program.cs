@@ -1,6 +1,9 @@
 ﻿using Aspose.Cells;
 using Wochenstatistik;
 
+// Manka -> email adresse erstellen intern
+// Mühlenbeck -> 100 EURO für Testflight
+
 try
 {
     string excel_file_path = Environment.GetEnvironmentVariable("EXCEL_FILE_PATH");

@@ -12,13 +12,9 @@ public static class DataManager
     private static string? _currentMonth;
     private static string? _monthSpan;
     private static string? _currentMonthBeaTEUR;
-    private static string? _currentMonthBeaVorjahrMonat;
     private static string? _currentMonthGFTEUR;
-    private static string? _currentMonthGFVorjahrMonat;
     private static string? _currentMonthTaxTEUR;
-    private static string? _currentMonthTaxVorjahrMonat;
     private static string? _currentMonthGesamtTEUR;
-    private static string? _currentMonthGesamtVorjahrMonat;
     private static string? _monthSpanBeaTEUR;
     private static string? _monthSpanBeaVorjahrMonat;
     private static string? _monthSpanGFTEUR;
@@ -52,13 +48,9 @@ public static class DataManager
         _currentMonth = worksheet.Cells[0, 2].Value.ToString();
         _monthSpan = worksheet.Cells[0, 11].Value.ToString();
         _currentMonthBeaTEUR = GetFormattedValue(rowData['C'], false);
-        _currentMonthBeaVorjahrMonat = GetFormattedValue(rowData['D'], true);
         _currentMonthGFTEUR = GetFormattedValue(rowData['E'], false);
-        _currentMonthGFVorjahrMonat = GetFormattedValue(rowData['F'], true);
         _currentMonthTaxTEUR = GetFormattedValue(rowData['G'], false);
-        _currentMonthTaxVorjahrMonat = GetFormattedValue(rowData['H'], true);
         _currentMonthGesamtTEUR = GetFormattedValue(rowData['I'], false);
-        _currentMonthGesamtVorjahrMonat = GetFormattedValue(rowData['J'], true);
         _monthSpanBeaTEUR = GetFormattedValue(rowData['L'], false);
         _monthSpanBeaVorjahrMonat = GetFormattedValue(rowData['M'], true);
         _monthSpanGFTEUR = GetFormattedValue(rowData['N'], false);
@@ -160,18 +152,14 @@ public static class DataManager
     private static string GetHtmlContent()
     {
         string result = File.ReadAllText("html/styling.html");
-        result += "<title>Hallo " + _firm + "!</title></head><body><div class=\"table-container\"><table><thead>\n<tr><th colspan=\"8\" class=\"main-header\">";
+        result += "<title>Hallo " + _firm + ",</title></head><body><div class=\"table-container\"><table><thead>\n<tr><th colspan=\"4\" class=\"main-header\">";
         result += _currentMonth + "</th><th colspan=\"8\" class=\"main-header\">";
         result += _monthSpan;
         result += File.ReadAllText("html/headingTitles.html");
         result += GetStyleDiv(_currentMonthBeaTEUR, "yellow");
-        result += GetStyleDiv(_currentMonthBeaVorjahrMonat, "yellow");
         result += GetStyleDiv(_currentMonthGFTEUR, "green");
-        result += GetStyleDiv(_currentMonthGFVorjahrMonat, "green");
         result += GetStyleDiv(_currentMonthTaxTEUR, "blue");
-        result += GetStyleDiv(_currentMonthTaxVorjahrMonat, "blue");
         result += GetStyleDiv(_currentMonthGesamtTEUR, "purple");
-        result += GetStyleDiv(_currentMonthGesamtVorjahrMonat, "purple");
         result += GetStyleDiv(_monthSpanBeaTEUR, "yellow");
         result += GetStyleDiv(_monthSpanBeaVorjahrMonat, "yellow");
         result += GetStyleDiv(_monthSpanGFTEUR, "green");
@@ -198,7 +186,7 @@ public static class DataManager
         message.Subject = "Wochenstatistik für " + _firm;
 
         message.Body = new TextPart("html")
-        { Text = "Hallo " + _firm + ",\nHier ist Ihre Wochenstatistik:\n"+ GetHtmlContent() };
+        { Text = "Hallo " + _firm + ",<br><br>Hier ist Ihre Wochenstatistik:<br><br>"+ GetHtmlContent() + "<br>Beste Grüße, Ihre Buchhaltung" };
 
         string host = Environment.GetEnvironmentVariable("EMAIL_SERVER_HOST");
         string port = Environment.GetEnvironmentVariable("EMAIL_SERVER_PORT");
