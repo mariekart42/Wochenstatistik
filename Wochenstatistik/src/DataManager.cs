@@ -197,6 +197,7 @@ public static class DataManager
         client.Authenticate(emailHost, emailPassword);
         client.Send (message);
         client.Disconnect (true);
+
     }
 
     private static bool IsValidEmail(string email)
