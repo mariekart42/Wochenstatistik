@@ -27,6 +27,14 @@ public static class DataManager
     private static string? _offeneLeistungskostenFremd;
     private static string? _offeneLeistungskostenGesamt;
 
+
+    private static string USER_FILE_PATH = "document/Nutzer Liste.txt";
+    private static string EMAIL_HOST = PROVIDE EMAIL HOST HERE;
+    private static string EMAIL_PASSWORD = PROVIDE EMAIL PASSWORD HERE;
+    private static string EMAIL_SERVER_HOST = PROVIDE EMAIL SERVER HOST HERE;
+    private static int EMAIL_SERVER_PORT = PROVIDE EMAIL SERVER PORT HERE;
+    private static bool EMAIL_SERVER_SSL = PROVIDE EMAIL SERVER SSL HERE;
+
     private static string GetFormattedValue(Cell cell, bool isPercent)
     {
         string value = cell.Value.ToString();
@@ -178,26 +186,19 @@ public static class DataManager
     public static void sendMail()
     {
         var message = new MimeMessage ();
-        string emailHost = Environment.GetEnvironmentVariable("EMAIL_HOST");
-        string emailPassword = Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
 
-        message.From.Add(new MailboxAddress("Wochenstatistik", emailHost));
+        message.From.Add(new MailboxAddress("Wochenstatistik", EMAIL_HOST));
         message.To.Add(new MailboxAddress(_firm, _emailTo));
         message.Subject = "Wochenstatistik für " + _firm;
 
         message.Body = new TextPart("html")
         { Text = "Hallo " + _firm + ",<br><br>Hier ist Ihre Wochenstatistik:<br><br>"+ GetHtmlContent() + "<br>Beste Grüße, Ihre Buchhaltung" };
 
-        string host = Environment.GetEnvironmentVariable("EMAIL_SERVER_HOST");
-        string port = Environment.GetEnvironmentVariable("EMAIL_SERVER_PORT");
-        string ssl = Environment.GetEnvironmentVariable("EMAIL_SERVER_SSL");
-
         using var client = new SmtpClient ();
-        client.Connect (host, int.Parse(port), bool.Parse(ssl));
-        client.Authenticate(emailHost, emailPassword);
+        client.Connect (EMAIL_SERVER_HOST, EMAIL_SERVER_PORT, EMAIL_SERVER_SSL);
+        client.Authenticate(EMAIL_HOST, EMAIL_PASSWORD);
         client.Send (message);
         client.Disconnect (true);
-
     }
 
     private static bool IsValidEmail(string email)
@@ -215,10 +216,12 @@ public static class DataManager
         }
     }
 
-    public static Dictionary<string, string> GetUserDic(string user_file_path, Worksheet worksheet)
+    public static Dictionary<string, string> GetUserDic(Worksheet worksheet)
     {
+        if (string.IsNullOrEmpty(USER_FILE_PATH) || File.Exists(USER_FILE_PATH) == false)
+            throw new Exception("Please provide the Nutzer Liste.txt file!");
         Dictionary<string, string> userDic = new Dictionary<string, string>();
-        using StreamReader file = new StreamReader(user_file_path);
+        using StreamReader file = new StreamReader(USER_FILE_PATH);
         string line;
         while ((line = file.ReadLine()) != null)
         {
