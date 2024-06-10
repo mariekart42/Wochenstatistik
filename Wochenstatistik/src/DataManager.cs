@@ -27,13 +27,12 @@ public static class DataManager
     private static string? _offeneLeistungskostenFremd;
     private static string? _offeneLeistungskostenGesamt;
 
-
     private static string USER_FILE_PATH = "document/Nutzer Liste.txt";
-    private static string EMAIL_HOST = // PROVIDE EMAIL HOST HERE;
-    private static string EMAIL_PASSWORD = // PROVIDE EMAIL PASSWORD HERE;
-    private static string EMAIL_SERVER_HOST = // PROVIDE EMAIL SERVER HOST HERE eg. smtp-mail.outlook.com;
-    private static int EMAIL_SERVER_PORT = // PROVIDE EMAIL SERVER PORT HERE eg. 25 or 587;
-    private static bool EMAIL_SERVER_SSL = // PROVIDE EMAIL SERVER SSL HERE eg. false or true;
+    private static string EMAIL_HOST = null; // PROVIDE EMAIL HOST HERE
+    private static string EMAIL_PASSWORD = null; // PROVIDE EMAIL PASSWORD HERE;
+    private static string EMAIL_SERVER_HOST = null; // PROVIDE EMAIL SERVER HOST HERE eg. smtp-mail.outlook.com;
+    private static int EMAIL_SERVER_PORT = -1; // PROVIDE EMAIL SERVER PORT HERE eg. 25 or 587;
+    private static bool EMAIL_SERVER_SSL = false; // PROVIDE EMAIL SERVER SSL HERE eg. false or true;
 
     private static string GetFormattedValue(Cell cell, bool isPercent)
     {
@@ -220,6 +219,11 @@ public static class DataManager
     {
         if (string.IsNullOrEmpty(USER_FILE_PATH) || File.Exists(USER_FILE_PATH) == false)
             throw new Exception("Please provide the Nutzer Liste.txt file!");
+        if (string.IsNullOrEmpty(EMAIL_HOST) || string.IsNullOrEmpty(EMAIL_PASSWORD))
+            throw new Exception("Please provide your E-Mail address and credentials in DataManager.cs. They should not be empty.");
+        if (string.IsNullOrEmpty(EMAIL_SERVER_HOST) || EMAIL_SERVER_PORT == -1)
+            throw new Exception("Please provide the E-Mail server host and port in DataManager.cs. They should not be empty.");
+
         Dictionary<string, string> userDic = new Dictionary<string, string>();
         using StreamReader file = new StreamReader(USER_FILE_PATH);
         string line;
