@@ -29,11 +29,11 @@ public static class DataManager
 
 
     private static string USER_FILE_PATH = "document/Nutzer Liste.txt";
-    private static string EMAIL_HOST = PROVIDE EMAIL HOST HERE;
-    private static string EMAIL_PASSWORD = PROVIDE EMAIL PASSWORD HERE;
-    private static string EMAIL_SERVER_HOST = PROVIDE EMAIL SERVER HOST HERE;
-    private static int EMAIL_SERVER_PORT = PROVIDE EMAIL SERVER PORT HERE;
-    private static bool EMAIL_SERVER_SSL = PROVIDE EMAIL SERVER SSL HERE;
+    private static string EMAIL_HOST = // PROVIDE EMAIL HOST HERE;
+    private static string EMAIL_PASSWORD = // PROVIDE EMAIL PASSWORD HERE;
+    private static string EMAIL_SERVER_HOST = // PROVIDE EMAIL SERVER HOST HERE eg. smtp-mail.outlook.com;
+    private static int EMAIL_SERVER_PORT = // PROVIDE EMAIL SERVER PORT HERE eg. 25 or 587;
+    private static bool EMAIL_SERVER_SSL = // PROVIDE EMAIL SERVER SSL HERE eg. false or true;
 
     private static string GetFormattedValue(Cell cell, bool isPercent)
     {

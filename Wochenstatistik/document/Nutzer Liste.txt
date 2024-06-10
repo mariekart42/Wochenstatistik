@@ -1,0 +1,13 @@
+# List of Email Addresses for Weekly Statistics Distribution
+#
+# Only the users listed here will receive an email!
+#
+# Syntax: "Email Address|User Firm"
+# Example: mmensing@eisenfuhr.com|MSG
+#
+# Note:
+# 1. A line must contain a valid email address and a valid user abbreviation, separated by a '|'.
+# 2. Empty lines or lines beginning with '#' are ignored.
+# 3. If the syntax is incorrect, the program will terminate and no emails will be sent.
+
+example@eisenfuhr.com|MSG
