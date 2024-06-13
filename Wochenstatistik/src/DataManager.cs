@@ -34,6 +34,9 @@ public static class DataManager
     private static int EMAIL_SERVER_PORT = -1; // PROVIDE EMAIL SERVER PORT HERE eg. 25 or 587;
     private static bool EMAIL_SERVER_SSL = false; // PROVIDE EMAIL SERVER SSL HERE eg. false or true;
 
+
+
+
     private static string GetFormattedValue(Cell cell, bool isPercent)
     {
         string value = cell.Value.ToString();
