@@ -3,19 +3,22 @@ using Wochenstatistik;
 
 try
 {
-    Worksheet worksheet = ExcelHandler.GetWorksheet();
-    Dictionary<string, string> userDic = DataManager.GetUserDic(worksheet);
+    var config = ConfigHandler.GetConfigFile();
+    Worksheet worksheet = ExcelHandler.GetWorksheet(config["EXCEL_FILE_PATH"]);
+    DataManager.InitConfigVariables(config);
+    Dictionary<string, string> userDic = DataManager.GetUserDic(worksheet, config);
     Console.ForegroundColor = ConsoleColor.Green;
     foreach (var user in userDic)
     {
-        Console.WriteLine($"SEND EMAIL TO: {user.Key}, {user.Value}");
         DataManager.InitData(worksheet, user);
         DataManager.sendMail();
+        Console.WriteLine($"SEND EMAIL TO: {user.Key}, {user.Value}");
     }
 }
 catch (Exception e)
 {
-    ConsoleColor originalColor = Console.ForegroundColor;
+    ConsoleColor originalColor = ConsoleColor.Black;
+    Console.ForegroundColor = originalColor;
     Console.WriteLine("\nError in program:");
     Console.ForegroundColor = ConsoleColor.Red;
     Console.WriteLine("   "+e.Message);
