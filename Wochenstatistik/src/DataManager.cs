@@ -27,15 +27,14 @@ public static class DataManager
     private static string? _offeneLeistungskostenFremd;
     private static string? _offeneLeistungskostenGesamt;
 
-    private static string USER_FILE_PATH = "document/Nutzer Liste.txt";
-    private static string EMAIL_HOST = null; // PROVIDE EMAIL HOST HERE
-    private static string EMAIL_PASSWORD = null; // PROVIDE EMAIL PASSWORD HERE;
-    private static string EMAIL_SERVER_HOST = null; // PROVIDE EMAIL SERVER HOST HERE eg. smtp-mail.outlook.com;
-    private static int EMAIL_SERVER_PORT = -1; // PROVIDE EMAIL SERVER PORT HERE eg. 25 or 587;
-    private static bool EMAIL_SERVER_SSL = false; // PROVIDE EMAIL SERVER SSL HERE eg. false or true;
+    private static string USER_FILE_PATH;
+    private static string EMAIL_HOST;
+    private static string EMAIL_PASSWORD;
+    private static string EMAIL_SERVER_HOST;
+    private static int EMAIL_SERVER_PORT;
+    private static bool EMAIL_SERVER_SSL;
 
-
-
+    private static string PATH_TO_CONFIG;
 
     private static string GetFormattedValue(Cell cell, bool isPercent)
     {
@@ -196,11 +195,18 @@ public static class DataManager
         message.Body = new TextPart("html")
         { Text = "Hallo " + _firm + ",<br><br>Hier ist Ihre Wochenstatistik:<br><br>"+ GetHtmlContent() + "<br>Beste Grüße, Ihre Buchhaltung" };
 
-        using var client = new SmtpClient ();
-        client.Connect (EMAIL_SERVER_HOST, EMAIL_SERVER_PORT, EMAIL_SERVER_SSL);
-        client.Authenticate(EMAIL_HOST, EMAIL_PASSWORD);
-        client.Send (message);
-        client.Disconnect (true);
+        try
+        {
+            using var client = new SmtpClient ();
+            client.Connect (EMAIL_SERVER_HOST, EMAIL_SERVER_PORT, EMAIL_SERVER_SSL);
+            client.Authenticate(EMAIL_HOST, EMAIL_PASSWORD);
+            client.Send (message);
+            client.Disconnect (true);
+        }
+        catch
+        {
+            throw new Exception($"SmtpClient failed to send Mail to \'{_emailTo}\'. Please check and correct your \'config.txt\' file. One or more of the following settings caused the error:\n\t- EMAIL_HOST={EMAIL_HOST}\n\t- EMAIL_PASSWORD={EMAIL_PASSWORD}\n\t- EMAIL_SERVER_HOST={EMAIL_SERVER_HOST}\n\t- EMAIL_SERVER_PORT={EMAIL_SERVER_PORT}\n\t- EMAIL_SERVER_SSL={EMAIL_SERVER_SSL}\n   Path to your \'config.txt\': {PATH_TO_CONFIG}");
+        }
     }
 
     private static bool IsValidEmail(string email)
@@ -218,15 +224,36 @@ public static class DataManager
         }
     }
 
-    public static Dictionary<string, string> GetUserDic(Worksheet worksheet)
+    public static void InitConfigVariables(Dictionary<string, string> config)
     {
-        if (string.IsNullOrEmpty(USER_FILE_PATH) || File.Exists(USER_FILE_PATH) == false)
-            throw new Exception("Please provide the Nutzer Liste.txt file!");
-        if (string.IsNullOrEmpty(EMAIL_HOST) || string.IsNullOrEmpty(EMAIL_PASSWORD))
-            throw new Exception("Please provide your E-Mail address and credentials in DataManager.cs. They should not be empty.");
-        if (string.IsNullOrEmpty(EMAIL_SERVER_HOST) || EMAIL_SERVER_PORT == -1)
-            throw new Exception("Please provide the E-Mail server host and port in DataManager.cs. They should not be empty.");
+        string user_file_path = config["USER_FILE_PATH"];
+        string email_host = config["EMAIL_HOST"];
+        string email_password = config["EMAIL_PASSWORD"];
+        string email_server_host = config["EMAIL_SERVER_HOST"];
+        string email_server_port = config["EMAIL_SERVER_PORT"];
+        string email_server_ssl = config["EMAIL_SERVER_SSL"];
+        string path_to_config = config["PATH_TO_CONFIG"];
 
+        if (string.IsNullOrEmpty(user_file_path) || File.Exists(user_file_path) == false)
+            throw new Exception("Please provide the \'Nutzer Liste.txt\' file!");
+        USER_FILE_PATH = user_file_path;
+        if (string.IsNullOrEmpty(email_host) || string.IsNullOrEmpty(email_password))
+            throw new Exception($"\'config.txt\' file is invalid. Please assign a value to EMAIL_HOST and EMAIL_PASSWORD. They should not be empty.\n   Path to your \'config.txt\': {PATH_TO_CONFIG}");
+        EMAIL_HOST = email_host;
+        EMAIL_PASSWORD = email_password;
+        if (string.IsNullOrEmpty(email_server_host) || !email_server_port.All(char.IsDigit) || email_server_port == "-1")
+            throw new Exception($"\'config.txt\' file is invalid. Please assign a value to EMAIL_SERVER_HOST and EMAIL_SERVER_PORT. They should not be empty.\n   Path to your \'config.txt\': {PATH_TO_CONFIG}");
+        EMAIL_SERVER_HOST = email_server_host;
+        EMAIL_SERVER_PORT = int.Parse(email_server_port);
+        if (email_server_ssl != "false" && email_server_ssl != "true")
+            throw new Exception(
+                $"\'config.txt\' file is invalid. EMAIL_SERVER_SSL is type bool. Please set it to true (to use ssl) or false (to not use ssl).\n   Path to your \'config.txt\': {PATH_TO_CONFIG}");
+        EMAIL_SERVER_SSL = bool.Parse(email_server_ssl);
+        PATH_TO_CONFIG = path_to_config;
+    }
+
+    public static Dictionary<string, string> GetUserDic(Worksheet worksheet, Dictionary<string, string> config)
+    {
         Dictionary<string, string> userDic = new Dictionary<string, string>();
         using StreamReader file = new StreamReader(USER_FILE_PATH);
         string line;
@@ -240,7 +267,7 @@ public static class DataManager
             {
                 string email = fields[0].Trim();
                 if (!IsValidEmail(email))
-                    throw new Exception($"Wrong syntax in User_Wochenstatistik file. E-Mail address has wrong syntax. Found E-Mail: {email}. Exit.");
+                    throw new Exception($"Wrong syntax in \'Nutzer Liste.txt\' file. E-Mail address has wrong syntax. Found E-Mail: {email}.");
                 string firm = fields[1].Trim().ToUpper();
                 bool found = false;
                 for (int i = 0; i <= worksheet.Cells.MaxDataRow; i++)
@@ -255,10 +282,10 @@ public static class DataManager
                 if (found)
                     userDic[firm] = email;
                 else
-                    throw new Exception($"Wrong syntax in User_Wochenstatistik file. Firm is invalid. Found: {firm}. Exit.");
+                    throw new Exception($"Wrong syntax in \'Nutzer Liste.txt\' file. Firm is invalid or does not exist in the \'Daten Wochenstatistik.xlsx\' file. Found: {firm}.");
             }
             else
-                throw new Exception($"Wrong syntax in User_Wochenstatistik file. Expected: <email>|<firm>. Found: {line}. Exit.");
+                throw new Exception($"Wrong syntax in \'Nutzer Liste.txt\' file. Expected: <email>|<firm>. Found: {line}.");
         }
         return userDic;
     }

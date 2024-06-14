@@ -6,12 +6,9 @@ public static class ConfigHandler
     {
         Dictionary<string, string> config = new Dictionary<string, string>();
 
-        string configFileName = "config.txt";
-
         string binLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
         string directoryPath = Path.GetDirectoryName(binLocation);
-        string configPath = Path.Combine(directoryPath, configFileName);
-
+        string configPath = Path.Combine(directoryPath, "config.txt");
         if (!File.Exists(configPath))
         {
             Console.WriteLine($"The config.txt does not exist. Creating it...");
@@ -23,30 +20,23 @@ public static class ConfigHandler
                     writer.WriteLine("# program will not start, if not all variables are initialized.");
                     writer.WriteLine("# Don't use ANY quotation marks [\", \'].\n\n");
                     writer.WriteLine("EXCEL_FILE_PATH=document/Daten Wochenstatistik.xlsx");
-                    writer.WriteLine("USER_FILE_PATH=document/Nutzer Liste.txt\n");
-                    writer.WriteLine("EMAIL_HOST=example@eisenfuhr.com");
+                    writer.WriteLine("USER_FILE_PATH=document/Nutzer Liste.txt");
+                    writer.WriteLine("EMAIL_HOST=umsatzstatistik@eisenfuhr.com");
                     writer.WriteLine("EMAIL_PASSWORD=");
-                    writer.WriteLine("EMAIL_SERVER_HOST=mail.esp.dom");
-                    writer.WriteLine("EMAIL_SERVER_PORT=25");
+                    writer.WriteLine("EMAIL_SERVER_HOST=rpx.eisenfuhr.com");
+                    writer.WriteLine("EMAIL_SERVER_PORT=587");
                     writer.WriteLine("EMAIL_SERVER_SSL=false");
                 }
             }
-
             throw new Exception(
-                "File 'config.txt' got created inside the root folder. Please override the default values and run the program again.");
+                $"File 'config.txt' got created inside the root folder. Please override the default values and run the program again.\n   Path to your \'config.txt\': {configPath}");
         }
-        using (StreamReader reader = new StreamReader(configPath))
-        {
-            Console.WriteLine($"All: {reader.ReadToEnd()}");
-        }
+        Console.WriteLine($"Path to the \'config.txt\' file: {configPath}");
 
         config = GetConfigDic(configPath);
-        //
-        // config["path"] = configPath;
-
+        config["PATH_TO_CONFIG"] = configPath;
         return config;
     }
-
 
     private static Dictionary<string, string> GetConfigDic(string configPath)
     {
@@ -56,19 +46,15 @@ public static class ConfigHandler
             while (!reader.EndOfStream)
             {
                 var line = reader.ReadLine();
-                // Console.WriteLine($"one line: {line}");
                 line = line.Trim();
                 if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith('#'))
                 {
-                    // Console.WriteLine($"IS NOT EMpTY: {line}");
                     int equalIndex = line.IndexOf('=');
                     if (equalIndex < 0)
                         continue;
 
                     string variable = line.Substring(0, equalIndex);
-                    Console.WriteLine($"Variable: {variable}");
                     string value = line.Substring(equalIndex + 1);
-                    Console.WriteLine($"Value: {value}\n");
                     if (string.IsNullOrWhiteSpace(value))
                         throw new Exception($"Invalid config.txt file. Value on this line not initialized: {line}.");;
                     switch (variable)
@@ -99,9 +85,7 @@ public static class ConfigHandler
                     }
                 }
             }
-            // Console.WriteLine($"All: {reader.ReadToEnd()}");
         }
-        Console.WriteLine(config);
         return config;
     }
 }

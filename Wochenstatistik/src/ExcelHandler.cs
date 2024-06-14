@@ -7,19 +7,18 @@ public sealed class ExcelHandler
     private Workbook _workbook;
     private readonly Worksheet _worksheet;
 
-    private static string EXCEL_FILE_PATH = "document/Daten Wochenstatistik.xlsx";
     private ExcelHandler(string path)
     {
         _workbook = new Workbook(path);
         _worksheet = _workbook.Worksheets[0];
     }
 
-    public static Worksheet GetWorksheet()
+    public static Worksheet GetWorksheet(string excel_file_path)
     {
-        if (string.IsNullOrEmpty(EXCEL_FILE_PATH) || File.Exists(EXCEL_FILE_PATH) == false)
+        if (string.IsNullOrEmpty(excel_file_path) || File.Exists(excel_file_path) == false)
             throw new Exception("Please provide the Daten Wochenstatistik.xlsx file!");
         if (_instance == null)
-            _instance = new ExcelHandler(EXCEL_FILE_PATH);
+            _instance = new ExcelHandler(excel_file_path);
         return _instance._worksheet;
     }
 }
