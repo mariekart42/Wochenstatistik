@@ -1,4 +1,5 @@
 using System.Net.Mail;
+using System.Reflection;
 using Aspose.Cells;
 using MimeKit;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
@@ -35,6 +36,7 @@ public static class DataManager
     private static bool EMAIL_SERVER_SSL;
 
     private static string PATH_TO_CONFIG;
+    private static string PATH_TO_USER_FILE;
 
     private static string GetFormattedValue(Cell cell, bool isPercent)
     {
@@ -158,13 +160,33 @@ public static class DataManager
             return "<td class=\"highlight-" + highlight_colour + "\">" + value + "</td>";
     }
 
+
+    static string ReadEmbeddedResource(string resourceName)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+        {
+            if (stream == null)
+            {
+                throw new Exception($"Resource not found: {resourceName}");
+            }
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                return reader.ReadToEnd();
+            }
+        }
+    }
+
     private static string GetHtmlContent()
     {
-        string result = File.ReadAllText("html/styling.html");
+        // string html_file = ReadEmbeddedResource("Wochenstatistik.html.styling.html");
+
+        string result = ReadEmbeddedResource("Wochenstatistik.html.styling.html");
         result += "<title>Hallo " + _firm + ",</title></head><body><div class=\"table-container\"><table><thead>\n<tr><th colspan=\"4\" class=\"main-header\">";
         result += _currentMonth + "</th><th colspan=\"8\" class=\"main-header\">";
         result += _monthSpan;
-        result += File.ReadAllText("html/headingTitles.html");
+        result += ReadEmbeddedResource("Wochenstatistik.html.headingTitles.html");
+        // result += File.ReadAllText("html/headingTitles.html");
         result += GetStyleDiv(_currentMonthBeaTEUR, "yellow");
         result += GetStyleDiv(_currentMonthGFTEUR, "green");
         result += GetStyleDiv(_currentMonthTaxTEUR, "blue");
@@ -233,9 +255,10 @@ public static class DataManager
         string email_server_port = config["EMAIL_SERVER_PORT"];
         string email_server_ssl = config["EMAIL_SERVER_SSL"];
         string path_to_config = config["PATH_TO_CONFIG"];
+        string path_to_user_file = config["PATH_TO_USER_FILE"];
 
         if (string.IsNullOrEmpty(user_file_path) || File.Exists(user_file_path) == false)
-            throw new Exception("Please provide the \'Nutzer Liste.txt\' file!");
+            throw new Exception($"\'config.txt\' file is invalid. Please define the path to the \'Nutzer Liste.txt\' file, it should not be empty.\n   Path to your \'config.txt\': {PATH_TO_CONFIG}");
         USER_FILE_PATH = user_file_path;
         if (string.IsNullOrEmpty(email_host) || string.IsNullOrEmpty(email_password))
             throw new Exception($"\'config.txt\' file is invalid. Please assign a value to EMAIL_HOST and EMAIL_PASSWORD. They should not be empty.\n   Path to your \'config.txt\': {PATH_TO_CONFIG}");
@@ -250,6 +273,7 @@ public static class DataManager
                 $"\'config.txt\' file is invalid. EMAIL_SERVER_SSL is type bool. Please set it to true (to use ssl) or false (to not use ssl).\n   Path to your \'config.txt\': {PATH_TO_CONFIG}");
         EMAIL_SERVER_SSL = bool.Parse(email_server_ssl);
         PATH_TO_CONFIG = path_to_config;
+        PATH_TO_USER_FILE = path_to_user_file;
     }
 
     public static Dictionary<string, string> GetUserDic(Worksheet worksheet, Dictionary<string, string> config)
@@ -267,7 +291,7 @@ public static class DataManager
             {
                 string email = fields[0].Trim();
                 if (!IsValidEmail(email))
-                    throw new Exception($"Wrong syntax in \'Nutzer Liste.txt\' file. E-Mail address has wrong syntax. Found E-Mail: {email}.");
+                    throw new Exception($"Wrong syntax in \'Nutzer Liste.txt\' file. E-Mail address has wrong syntax. Found E-Mail: {email}.\n   Path to your \'Nutzer Liste.txt\': {PATH_TO_USER_FILE}");
                 string firm = fields[1].Trim().ToUpper();
                 bool found = false;
                 for (int i = 0; i <= worksheet.Cells.MaxDataRow; i++)
@@ -282,10 +306,10 @@ public static class DataManager
                 if (found)
                     userDic[firm] = email;
                 else
-                    throw new Exception($"Wrong syntax in \'Nutzer Liste.txt\' file. Firm is invalid or does not exist in the \'Daten Wochenstatistik.xlsx\' file. Found: {firm}.");
+                    throw new Exception($"Wrong syntax in \'Nutzer Liste.txt\' file. Firm is invalid or does not exist in the \'Daten Wochenstatistik.xlsx\' file. Found: {firm}.\n   Path to your \'Nutzer Liste.txt\': {PATH_TO_USER_FILE}");
             }
             else
-                throw new Exception($"Wrong syntax in \'Nutzer Liste.txt\' file. Expected: <email>|<firm>. Found: {line}.");
+                throw new Exception($"Wrong syntax in \'Nutzer Liste.txt\' file. Expected: <email>|<firm>. Found: {line}.\n   Path to your \'Nutzer Liste.txt\': {PATH_TO_USER_FILE}");
         }
         return userDic;
     }

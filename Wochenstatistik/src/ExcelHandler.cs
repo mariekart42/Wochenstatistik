@@ -16,7 +16,7 @@ public sealed class ExcelHandler
     public static Worksheet GetWorksheet(string excel_file_path)
     {
         if (string.IsNullOrEmpty(excel_file_path) || File.Exists(excel_file_path) == false)
-            throw new Exception("Please provide the Daten Wochenstatistik.xlsx file!");
+            throw new Exception($"Please provide the correct path to the \'Daten Wochenstatistik.xlsx\' file in your \'config.txt\' file.\n   Found path: {excel_file_path}.");
         if (_instance == null)
             _instance = new ExcelHandler(excel_file_path);
         return _instance._worksheet;
