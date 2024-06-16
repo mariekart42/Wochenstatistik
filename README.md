@@ -2,6 +2,8 @@
 
 This C# program extracts data from an Excel sheet using Aspose and initializes an SMTP server for Outlook to send weekly statistics emails to all specified users.
 
+![example picture](https://github.com/mariekart42/Wochenstatistik/blob/main/example.png)
+
 ## Features
 
 - Extracts data from an Excel file (`Daten Wochenstatistik.xlsx`).
