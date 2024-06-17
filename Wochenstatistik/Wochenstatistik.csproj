@@ -15,9 +15,8 @@
       <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
       <PackageReference Include="MimeKit" Version="4.6.0" />
       <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.8" />
-
-        <EmbeddedResource Include="html/styling.html" />
-        <EmbeddedResource Include="html/headingTitles.html" />
+      <EmbeddedResource Include="html/styling.html" />
+      <EmbeddedResource Include="html/headingTitles.html" />
     </ItemGroup>
 
     <ItemGroup>

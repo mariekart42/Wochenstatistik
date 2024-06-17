@@ -179,14 +179,11 @@ public static class DataManager
 
     private static string GetHtmlContent()
     {
-        // string html_file = ReadEmbeddedResource("Wochenstatistik.html.styling.html");
-
         string result = ReadEmbeddedResource("Wochenstatistik.html.styling.html");
         result += "<title>Hallo " + _firm + ",</title></head><body><div class=\"table-container\"><table><thead>\n<tr><th colspan=\"4\" class=\"main-header\">";
         result += _currentMonth + "</th><th colspan=\"8\" class=\"main-header\">";
         result += _monthSpan;
         result += ReadEmbeddedResource("Wochenstatistik.html.headingTitles.html");
-        // result += File.ReadAllText("html/headingTitles.html");
         result += GetStyleDiv(_currentMonthBeaTEUR, "yellow");
         result += GetStyleDiv(_currentMonthGFTEUR, "green");
         result += GetStyleDiv(_currentMonthTaxTEUR, "blue");
@@ -215,7 +212,7 @@ public static class DataManager
         message.Subject = "Wochenstatistik für " + _firm;
 
         message.Body = new TextPart("html")
-        { Text = "Hallo " + _firm + ",<br><br>Hier ist Ihre Wochenstatistik:<br><br>"+ GetHtmlContent() + "<br>Beste Grüße, Ihre Buchhaltung" };
+        { Text = "Hallo " + _firm + ",<br><br>anbei Ihre Wochenstatistik:<br><br>"+ GetHtmlContent() + "<br>Beste Grüße<br>Ihre Buchhaltung" };
 
         try
         {
